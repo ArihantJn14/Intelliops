@@ -37,8 +37,11 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    """Start the Kafka consumer thread when FastAPI boots."""
-    start_consumer_thread()
+    """Start the Kafka consumer thread when FastAPI boots (optional — skipped if Kafka is unavailable)."""
+    try:
+        start_consumer_thread()
+    except Exception as e:
+        print(f"[API] Kafka consumer not started ({e}). Use /ingest for direct metric ingestion.")
     print("[API] IntelliOps is running at http://localhost:8000")
     print("[API] Live dashboard at http://localhost:8000/dashboard")
 
@@ -140,6 +143,39 @@ def get_latest_explanation():
         'score': latest.get('score'),
         'explanation': latest.get('ai_explanation', 'Analysis pending...'),
     }
+
+
+@app.post("/ingest")
+def ingest_metrics(data: dict):
+    """Direct metric ingestion — bypasses Kafka. Used by collector_direct.py on low-RAM hosts."""
+    from api.consumer import write_to_influx
+    from anomaly.detector import detector
+
+    try:
+        write_to_influx(data)
+    except Exception as e:
+        print(f"[Ingest] InfluxDB write failed: {e}")
+
+    score = detector.score(data)
+    data['anomaly_score'] = round(score, 4)
+
+    with buffer_lock:
+        metrics_buffer.append(data)
+
+    if detector.is_anomaly(data):
+        severity = 'critical' if score > 0.85 else 'warning'
+        anomaly_event = {**data, 'severity': severity, 'detected_at': data['timestamp'], 'is_anomaly': True}
+        try:
+            from ai.explainer import explain_anomaly
+            with buffer_lock:
+                history = list(metrics_buffer)[-10:]
+            anomaly_event['ai_explanation'] = explain_anomaly(anomaly_event, history)
+        except Exception as e:
+            anomaly_event['ai_explanation'] = f'AI analysis unavailable: {e}'
+        anomaly_buffer.append(anomaly_event)
+        print(f'[Ingest] ANOMALY score:{score:.3f} CPU:{data.get("cpu_percent")}%')
+
+    return {"status": "ok", "anomaly_score": data['anomaly_score']}
 
 
 @app.post("/train")

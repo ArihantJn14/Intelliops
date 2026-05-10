@@ -65,14 +65,18 @@ def consume():
     """Main Kafka consumer loop. Runs forever in a daemon thread."""
     from anomaly.detector import detector  # imported here to avoid circular imports
 
-    consumer = KafkaConsumer(
-        TOPIC,
-        bootstrap_servers=KAFKA_BROKER,
-        auto_offset_reset="latest",
-        enable_auto_commit=True,
-        group_id="intelliops-api-group",
-        value_deserializer=lambda m: json.loads(m.decode("utf-8")),
-    )
+    try:
+        consumer = KafkaConsumer(
+            TOPIC,
+            bootstrap_servers=KAFKA_BROKER,
+            auto_offset_reset="latest",
+            enable_auto_commit=True,
+            group_id="intelliops-api-group",
+            value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+        )
+    except Exception as e:
+        print(f"[Consumer] Cannot connect to Kafka ({e}). Use /ingest endpoint instead.")
+        return
     print(f"[Consumer] Subscribed to Kafka topic '{TOPIC}'")
 
     for message in consumer:
