@@ -118,9 +118,6 @@ def consume():
                 anomaly_buffer.append(anomaly_event)
                 print(f'[ANOMALY] Score:{score:.3f} CPU:{data["cpu_percent"]}% MEM:{data["memory_percent"]}%')
 
-            # 4. Dispatch to Celery for async InfluxDB write
-            from api.tasks import score_and_alert
-            score_and_alert.delay(data)
 
         except Exception as e:
             print(f"[Consumer] Error processing message: {e}")
