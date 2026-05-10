@@ -1,0 +1,37 @@
+name: Deploy IntelliOps
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy backend to EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_KEY: ${{ secrets.EC2_KEY }}
+        run: |
+          echo "$EC2_KEY" > /tmp/key.pem
+          chmod 400 /tmp/key.pem
+          ssh -o StrictHostKeyChecking=no -i /tmp/key.pem ubuntu@$EC2_HOST '
+            cd intelliops &&
+            git pull origin main &&
+            pip3 install -r requirements.txt &&
+            sudo systemctl restart intelliops-api &&
+            sudo systemctl restart intelliops-celery &&
+            sudo systemctl restart intelliops-beat
+          '
+
+      - name: Build and deploy frontend
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_KEY: ${{ secrets.EC2_KEY }}
+        run: |
+          cd frontend
+          npm ci
+          REACT_APP_API_URL=http://$EC2_HOST:8000 npm run build
+          scp -o StrictHostKeyChecking=no -i /tmp/key.pem -r build/ ubuntu@$EC2_HOST:/home/ubuntu/intelliops/frontend/

@@ -1,0 +1,14 @@
+[Unit]
+Description=IntelliOps Celery Worker
+After=network.target redis.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/intelliops
+ExecStart=/usr/local/bin/celery -A api.celery_app worker --loglevel=info
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
