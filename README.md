@@ -2,7 +2,15 @@
 
 > Real-time infrastructure monitoring with ML anomaly detection, Prophet forecasting, and GPT-4o root-cause analysis. Deployed on AWS EC2.
 
-**Live Demo:** http://13.204.46.140:3000 &nbsp;|&nbsp; **API Docs:** http://13.204.46.140:8000/docs
+**Live Demo:** http://13.203.105.227:3000 &nbsp;|&nbsp; **API Docs:** http://13.203.105.227:8000/docs
+
+---
+
+## Screenshots
+
+| Dashboard — Live Incident | AI Chat Interface | Anomaly History |
+|:---:|:---:|:---:|
+| ![Dashboard](screenshots/dashboard-anomaly.webp) | ![Chat](screenshots/dashboard-chat.webp) | ![Anomalies](screenshots/anomalies-page.webp) |
 
 ---
 
