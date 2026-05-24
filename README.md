@@ -10,7 +10,7 @@
 
 | Dashboard — Live Incident | AI Chat Interface | Anomaly History |
 |:---:|:---:|:---:|
-| ![Dashboard](screenshots/dashboard-anomaly.webp) | ![Chat](screenshots/dashboard-chat.webp) | ![Anomalies](screenshots/anomalies-page.webp) |
+| ![Dashboard](screenshots/dashboard-main.webp) | ![Chat](screenshots/dashboard-chat.webp) | ![Anomalies](screenshots/anomalies-page.webp) |
 
 ---
 
